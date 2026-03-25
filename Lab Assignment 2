@@ -1,0 +1,221 @@
+Timer Function
+Python
+import time
+
+def measure_time(func, *args):
+    start = time.time()
+    result = func(*args)
+    end = time.time()
+    return result, (end - start)
+ Plotting (for all graphs)
+Python
+import matplotlib.pyplot as plt
+
+def plot_graph(x, y, title):
+    plt.plot(x, y)
+    plt.xlabel("Input Size")
+    plt.ylabel("Execution Time")
+    plt.title(title)
+    plt.show()
+TASK 1: Divide and Conquer
+1. Binary Search
+Python
+def binary_search(arr, low, high, key):
+    if low > high:
+        return -1
+    mid = (low + high) // 2
+    
+    if arr[mid] == key:
+        return mid
+    elif arr[mid] > key:
+        return binary_search(arr, low, mid - 1, key)
+    else:
+        return binary_search(arr, mid + 1, high, key)
+2. Merge Sort
+Python
+def merge(arr):
+    if len(arr) <= 1:
+        return arr
+    
+    mid = len(arr)//2
+    left = merge(arr[:mid])
+    right = merge(arr[mid:])
+    
+    return merge_sort(left, right)
+
+def merge_sort(left, right):
+    result = []
+    i = j = 0
+    
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            result.append(left[i]); i += 1
+        else:
+            result.append(right[j]); j += 1
+            
+    result.extend(left[i:])
+    result.extend(right[j:])
+    return result
+3. Quick Sort
+Python
+def quick_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    
+    pivot = arr[len(arr)//2]
+    left = [x for x in arr if x < pivot]
+    mid  = [x for x in arr if x == pivot]
+    right= [x for x in arr if x > pivot]
+    
+    return quick_sort(left) + mid + quick_sort(right)
+4. Max & Min (Divide & Conquer)
+Python
+def min_max(arr, low, high):
+    if low == high:
+        return arr[low], arr[low]
+    
+    if high == low + 1:
+        return (min(arr[low], arr[high]), max(arr[low], arr[high]))
+    
+    mid = (low + high)//2
+    min1, max1 = min_max(arr, low, mid)
+    min2, max2 = min_max(arr, mid+1, high)
+    
+    return min(min1, min2), max(max1, max2)
+5. Strassen (Simplified idea)
+For exam/project: implement basic version OR explain with comparison
+(Full code is long—tell me if you want full code)
+ TASK 2: Sorting Comparison
+Generate Input
+Python
+import random
+
+def generate_array(n):
+    return [random.randint(1, 10000) for _ in range(n)]
+Measure
+Python
+sizes = [100, 500, 1000, 2000]
+merge_times = []
+quick_times = []
+
+for n in sizes:
+    arr = generate_array(n)
+    
+    _, t1 = measure_time(merge, arr.copy())
+    _, t2 = measure_time(quick_sort, arr.copy())
+    
+    merge_times.append(t1)
+    quick_times.append(t2)
+Plot
+Python
+plot_graph(sizes, merge_times, "Merge Sort")
+plot_graph(sizes, quick_times, "Quick Sort")
+ TASK 3: Greedy Algorithms
+1. Fractional Knapsack
+Python
+def fractional_knapsack(weights, values, capacity):
+    items = list(zip(weights, values))
+    items.sort(key=lambda x: x[1]/x[0], reverse=True)
+    
+    total = 0
+    
+    for w, v in items:
+        if capacity >= w:
+            capacity -= w
+            total += v
+        else:
+            total += v * (capacity / w)
+            break
+            
+    return total
+2. Activity Selection
+Python
+def activity_selection(start, end):
+    activities = sorted(zip(start, end), key=lambda x: x[1])
+    
+    selected = [activities[0]]
+    
+    for i in range(1, len(activities)):
+        if activities[i][0] >= selected[-1][1]:
+            selected.append(activities[i])
+    
+    return selected
+3. Huffman Coding
+ Usually implemented with heap (priority queue)
+Tell me if you want full clean code (it’s a bit long but doable).
+ TASK 4: Dynamic Programming
+1. LCS
+Python
+def lcs(X, Y):
+    m, n = len(X), len(Y)
+    dp = [[0]*(n+1) for _ in range(m+1)]
+    
+    for i in range(m):
+        for j in range(n):
+            if X[i] == Y[j]:
+                dp[i+1][j+1] = dp[i][j] + 1
+            else:
+                dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
+    
+    return dp[m][n], dp
+2. 0/1 Knapsack
+Python
+def knapsack(W, wt, val, n):
+    dp = [[0]*(W+1) for _ in range(n+1)]
+    
+    for i in range(1, n+1):
+        for w in range(W+1):
+            if wt[i-1] <= w:
+                dp[i][w] = max(val[i-1] + dp[i-1][w-wt[i-1]], dp[i-1][w])
+            else:
+                dp[i][w] = dp[i-1][w]
+    
+    return dp[n][W], dp
+3. Matrix Chain Multiplication
+Python
+def matrix_chain(p):
+    n = len(p)
+    dp = [[0]*n for _ in range(n)]
+    
+    for L in range(2, n):
+        for i in range(1, n-L+1):
+            j = i + L - 1
+            dp[i][j] = float('inf')
+            
+            for k in range(i, j):
+                cost = dp[i][k] + dp[k+1][j] + p[i-1]*p[k]*p[j]
+                dp[i][j] = min(dp[i][j], cost)
+    
+    return dp[1][n-1]
+ TASK 5: TSP (Held-Karp)
+Python
+from itertools import combinations
+
+def tsp(graph):
+    n = len(graph)
+    dp = {}
+    
+    for i in range(1, n):
+        dp[(1 << i, i)] = (graph[0][i], 0)
+    
+    for r in range(2, n):
+        for subset in combinations(range(1, n), r):
+            bits = sum(1 << i for i in subset)
+            
+            for j in subset:
+                prev = bits & ~(1 << j)
+                res = []
+                
+                for k in subset:
+                    if k != j:
+                        res.append((dp[(prev, k)][0] + graph[k][j], k))
+                
+                dp[(bits, j)] = min(res)
+    
+    bits = (1 << n) - 2
+    res = []
+    
+    for j in range(1, n):
+        res.append((dp[(bits, j)][0] + graph[j][0], j))
+    
+    return min(res)
